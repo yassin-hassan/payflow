@@ -20,7 +20,8 @@ public class Invoice {
     @Enumerated(EnumType.STRING)
     private InvoiceStatus status;
 
-    @OneToMany(mappedBy = "invoice", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "invoice")
+    // lazy fetch by default
     private List<Payment> payments;
 
 }
