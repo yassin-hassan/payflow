@@ -26,6 +26,10 @@ public class Invoice {
 
     protected Invoice(){}
 
+    public Invoice(BigDecimal amount) {
+        this.amount = amount;
+    }
+
     public void recomputeStatus() {
         BigDecimal totalAmount = payments.stream()
                 .map(Payment::getAmount)
@@ -40,6 +44,17 @@ public class Invoice {
 
     public void addPayment(Payment payment) {
         payments.add(payment);
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+    public InvoiceStatus getStatus() {
+        return status;
     }
 
 }
