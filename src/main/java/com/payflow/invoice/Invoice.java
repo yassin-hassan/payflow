@@ -4,6 +4,7 @@ import com.payflow.payment.Payment;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,7 +23,7 @@ public class Invoice {
 
     @OneToMany(mappedBy = "invoice")
     // lazy fetch by default
-    private List<Payment> payments;
+    private List<Payment> payments = new ArrayList<>();
 
     protected Invoice(){}
 
