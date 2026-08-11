@@ -9,7 +9,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "payments")
 public class Payment {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -22,5 +21,17 @@ public class Payment {
     private String eventId;
 
     private BigDecimal amount;
+
+    protected Payment(){}
+
+    public Payment(Invoice invoice, String eventId, BigDecimal amount) {
+        this.invoice = invoice;
+        this.eventId = eventId;
+        this.amount = amount;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
 
 }

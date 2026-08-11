@@ -18,10 +18,28 @@ public class Invoice {
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    private InvoiceStatus status;
+    private InvoiceStatus status = InvoiceStatus.PENDING;;
 
     @OneToMany(mappedBy = "invoice")
     // lazy fetch by default
     private List<Payment> payments;
+
+    protected Invoice(){}
+
+    public void recomputeStatus() {
+        BigDecimal totalAmount = payments.stream()
+                .map(Payment::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (totalAmount.compareTo(this.amount) >= 0) {
+            status = InvoiceStatus.PAID;
+        } else {
+            status = InvoiceStatus.PARTIAL;
+        }
+    }
+
+    public void addPayment(Payment payment) {
+        payments.add(payment);
+    }
 
 }
