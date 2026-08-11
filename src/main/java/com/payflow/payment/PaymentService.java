@@ -31,4 +31,8 @@ public class PaymentService {
             invoice.recomputeStatus();
         }
     }
+
+    public boolean isEventProcessed(String eventId) {
+        return paymentRepository.existsByEventId(eventId);
+    }
 }

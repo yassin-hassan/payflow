@@ -1,5 +1,6 @@
 package com.payflow.payment;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,9 +14,16 @@ public class PaymentWebhookController {
         this.paymentService = paymentService;
     }
 
-    @PostMapping("api/webhooks/payment")
+    @PostMapping("/api/webhooks/payment")
     public ResponseEntity<Void> receivePaymentWebhook(@RequestBody PaymentWebhookRequest request) {
-        paymentService.processPayment(request.eventId(), request.invoiceId(), request.amount());
+        try {
+            paymentService.processPayment(request.eventId(), request.invoiceId(), request.amount());
+        } catch (DataIntegrityViolationException e) {
+            // concurrent duplicate : another thread recorded this event -> already handled
+            if (!paymentService.isEventProcessed(request.eventId())) {
+                throw e;
+            }
+        }
         return ResponseEntity.ok().build();
     }
 }
