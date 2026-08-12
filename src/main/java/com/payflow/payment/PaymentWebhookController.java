@@ -26,4 +26,10 @@ public class PaymentWebhookController {
         }
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/api/webhooks/payment-naive")
+    public ResponseEntity<Void> receivePaymentWebhookNaive(@RequestBody PaymentWebhookRequest request) {
+        paymentService.processPayment(request.eventId(), request.invoiceId(), request.amount());
+        return ResponseEntity.ok().build();
+    }
 }
