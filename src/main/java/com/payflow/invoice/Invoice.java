@@ -25,6 +25,9 @@ public class Invoice {
     // lazy fetch by default
     private List<Payment> payments = new ArrayList<>();
 
+    @Version
+    private Long version;
+
     protected Invoice(){}
 
     public Invoice(BigDecimal amount) {
