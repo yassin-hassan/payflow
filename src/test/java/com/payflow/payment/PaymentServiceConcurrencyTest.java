@@ -2,6 +2,7 @@ package com.payflow.payment;
 
 import com.payflow.invoice.Invoice;
 import com.payflow.invoice.InvoiceRepository;
+import com.payflow.invoice.InvoiceStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -59,5 +60,41 @@ public class PaymentServiceConcurrencyTest {
         System.out.println(">>> payments recorded: " + paymentRepository.count());
         System.out.println(">>> errors thrown: " + errors);
         assertThat(paymentRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    void concurrentPartialPayments_shouldReachPaid() throws InterruptedException {
+        Invoice invoice = invoiceRepository.save(new Invoice(new BigDecimal("100.00")));
+        UUID invoiceId = invoice.getId();
+
+        int threadCount = 2;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch startGate = new CountDownLatch(1);
+        CountDownLatch doneGate  = new CountDownLatch(threadCount);
+        List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
+
+        String[] eventIds = {"evt_1", "evt_2"};   // DIFFERENT events → no unique conflict
+        for (int i = 0; i < threadCount; i++) {
+            String eventId = eventIds[i];
+            executor.submit(() -> {
+                try {
+                    startGate.await();
+                    paymentService.processPayment(eventId, invoiceId, new BigDecimal("50.00"));
+                } catch (Throwable t) {
+                    errors.add(t);
+                } finally {
+                    doneGate.countDown();
+                }
+            });
+        }
+
+        startGate.countDown();
+        doneGate.await();
+        executor.shutdown();
+
+        Invoice reloaded = invoiceRepository.findById(invoiceId).orElseThrow();   // fresh from DB
+        System.out.println(">>> status: " + reloaded.getStatus());
+        System.out.println(">>> payments: " + paymentRepository.count());
+        assertThat(reloaded.getStatus()).isEqualTo(InvoiceStatus.PAID);
     }
 }
